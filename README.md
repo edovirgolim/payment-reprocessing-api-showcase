@@ -2,23 +2,26 @@
 
 [![Java 21](https://shields.io)](https://openjdk.org)
 [![Spring Boot 3](https://shields.io)](https://spring.io)
-[![AWS Architecture Ready](https://shields.io)]()
+[![AWS Architecture Ready](https://shields.io)](#%EF%B8%8F-enterprise-grade-stack)
 
-> **💼 Available for Upwork Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
+> **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
 > This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request.  
-> ✉️ **Hire me on Upwork or request source access:** `edo.ricardo@gmail.com`
+> ✉️ **Hire me on Upwork or request source access:** `edo.virgolim@gmail.com`
 
 ---
 
 ## 🗺️ Table of Contents
 
-* [👨‍💻 Behind the Architecture: Meet the Engineer](#-behind the-architecture-meet-the-engineer)
+* [👨‍💻 Behind the Architecture: Meet the Engineer](#-behind-the-architecture-meet-the-engineer)
 * [📌 The Core Business Problem](#-the-core-business-problem)
 * [📐 Architecture & System Design Decisions](#-architecture--system-design-decisions)
+  * [Deep-Dive Systems Architecture & Diagrams](#%EF%B8%8F-deep-dive-systems-architecture--diagrams)
   * [Advanced Architectural Patterns Demonstrated](#-advanced-architectural-patterns-demonstrated)
 * [🛠️ Enterprise-Grade Stack](#%EF%B8%8F-enterprise-grade-stack)
 * [🗺️ Clean Architecture Component Map](#%EF%B8%8F-clean-architecture-component-map)
 * [🧪 Automated Testing & Code Quality Strategy](#-automated-testing--code-quality-strategy)
+  * [📊 Testing Metrics & Live Execution Summary](#-testing-metrics--live-execution-summary)
+  * [🛠️ Advanced Testing Concepts Implemented](#%EF%B8%8F-advanced-testing-concepts-implemented)
 * [🚀 Engineering Capabilities (How I Can Help Your Business)](#-engineering-capabilities-how-i-can-help-your-business)
 * [🤝 Let's Connect](#-lets-connect)
 
@@ -59,13 +62,28 @@ The system is architected using **Clean Architecture** and **Domain-Driven Desig
    in < 1 Second           items to DB            triggers payment gateway
 ```
 
+### 🗺️ Deep-Dive Systems Architecture & Diagrams
+
+The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project:
+
+👉 **[Read the Full Systems Architecture Reference (ARCHITECTURE.md)](ARCHITECTURE.md)**
+
+| Architectural Blueprint | What It Unlocks |
+|---|---|
+| [Flow 1 — Synchronous Upload](ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
+| [Flow 2 — Transactional Outbox](ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
+| [Flow 3 — Async File Ingestion](ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
+| [Flow 4 — Resilient Item Processing](ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
+
+---
+
 ### 🧠 Advanced Architectural Patterns Demonstrated:
 
-*   **Multi-Tiered Idempotency:** Double-guard protection using a payload SHA-256 hash at the boundary and transaction-level idempotency keys cross-referenced via a high-performance database index (`LedgerIndex`). This completely prevents duplicate operations even during race conditions.
-*   **Transactional Outbox Pattern:** Guarantees atomic eventual consistency. Fila messages are never dispatched directly inside the database transaction context—avoiding lost messages or distributed locking. Instead, data and events are written to the same storage state in a single unit of work and securely published by an isolated, resilient background worker.
-*   **Zero-Memory File Streaming:** Incremental, low-footprint CSV and JSON streaming parsers process chunks straight out of Amazon S3, avoiding memory spikes (`OutOfMemoryError`) even under heavy load.
-*   **Downstream Fault Isolation:** External payment gateways are isolated using **Circuit Breakers** and **Bulkheads** (via Resilience4j), ensuring that lagging or degraded external vendor APIs never trigger a cascading failure across your infrastructure.
-*   **Database Agnostic Persistence:** Out-of-the-box support for both high-scalability NoSQL (**Amazon DynamoDB**) and traditional relational structures (**PostgreSQL**), flipped dynamically via native runtime profiles.
+*   **Multi-Tiered Idempotency:** Double-guard protection using a payload SHA-256 hash at the boundary and transaction-level idempotency keys cross-referenced via a high-performance database index (`LedgerIndex`). This completely prevents duplicate operations even during intense race conditions.
+*   **Transactional Outbox Pattern:** Guarantees eventual consistency. Messages are never dispatched directly inside the database transaction context—avoiding lost messages or distributed locking. Instead, data and events are written to the same storage state in a single unit of work and published by a background loop.
+*   **Zero-Memory File Streaming:** Incremental, low-footprint CSV and JSON streaming parsers process chunks straight out of Amazon S3, avoiding memory spikes (`OutOfMemoryError`) even under heavy production file loads.
+*   **Downstream Fault Isolation:** External payment gateways are isolated using **Circuit Breakers** and **Bulkheads** (via Resilience4j). If an external provider degrades, the circuit fallback safely isolates the failure, updates the ledger, and allows the remaining SQS processing queue to flow without worker starvation.
+*   **Database Agnostic Persistence:** Out-of-the-box support for both high-scalability NoSQL (**Amazon DynamoDB**) and traditional relational structures (**PostgreSQL**), flipped dynamically via native runtime Spring profiles.
 
 ---
 
@@ -103,10 +121,12 @@ src/main/
     └── application.yaml        # Active cloud profiles and runtime property definitions
 └── test/
     └── java/com/virgolim/paymentapi/
-        ├── infra/                         # Integration tests for Web Controllers, JWT, and SQS
-        │   └── web/                       # PaymentReprocessingController & EndToEnd Testcontainers
-        └── usecase/                       # Unit tests verifying application business rules
+        ├── infra/              # Integration tests for Web Controllers, JWT, and SQS
+        │   └── web/            # PaymentReprocessingController & EndToEnd Testcontainers
+        └── usecase/            # Unit tests verifying application business rules
 ```
+
+---
 
 ## 🧪 Automated Testing & Code Quality Strategy
 
@@ -118,27 +138,29 @@ flowchart LR
     A --> C["Integration Testing Tier"]
     A --> D["End-to-End Testcontainers Flow"]
     
-    B --> B1["Csv / Json Extraction Strategy (92% Coverage)"]
-    C --> C1["JWT Security Filter & SQS Message Polling"]
-    D --> D1["Full Database and Repository Isolation (PostgreSQL)"]
+    B --> B1["Csv / Json Extraction (92% Coverage)"]
+    C --> C1["JWT Security & SQS Message Polling"]
+    D --> D1["Full DB Isolation (PostgreSQL)"]
 ```
 
 ### 📊 Testing Metrics & Live Execution Summary
+
 The test suite generates native **JaCoCo coverage metrics** and executes seamlessly against localized environment layers:
 
 | Target Area | Test Suite / Components Covered | Assertions | Focus Type |
 |---|---|:---:|---|
 | **E2E Pipeline** | `PaymentReprocessingEndToEndIntegrationTest` | **9** | Full Multi-Stage System Cycle |
-| **Web / Boundary** | `PaymentReprocessingControllerIntegrationTest`, `GlobalExceptionHandlerTest` | **7** | HTTP Contracts & Schema Validation |
+| **Web / Boundary** | `PaymentReprocessingControllerIntegrationTest`, `GlobalExceptionHandlerTest` | **8** | HTTP Contracts & Schema Validation |
 | **Security** | `JwtAuthenticationFilterTest` | **3** | RBAC Auth, Tenant Boundary Isolation |
 | **Async / Queues** | `OutboxPublisherTest`, `SqsQueueConsumersTest` | **5** | SQS Consumers & Event Outbox Delivery |
 | **Data Extraction**| `CsvExtractionStrategyTest`, `JsonExtractionStrategyTest`, `ExtractionFactory` | **15** | High-Efficiency Zero-Memory Streaming |
 | **Business Logic** | `ProcessQueuedItemUseCaseTest`, `ProcessTransactionItemUseCaseTest`, `UploadBatchFileUseCase` | **12** | Pure Domain Orchestrators & Rules |
-| **Persistence** | `BatchJobRepositoryAdapterTest`, `DynamoDbSchemaTest` | **5** | Repository Adapters & Schema Specs |
+| **Persistence** | `BatchJobRepositoryAdapterTest`, `DynamoDbSchemaTest` | **4** | Repository Adapters & Schema Specs |
 
-### 🛠️ Advanced Testing Concepts Implemented:
+### 🛠️ Advanced Testing Concepts Implemented
+
 *   **Real Database Sanity via Testcontainers:** E2E flows (`PaymentReprocessingEndToEndIntegrationTest`) spin up an isolated, ephemeral PostgreSQL instance inside real Docker containers during runtime. This avoids fragile mocking of the database layer and mirrors real production behavior.
-*   **High-Fidelity Stream Parsing Validation:** Heavy validation on data ingestion (achieving **92% line coverage** on stream-based parsing engines) ensuring broken rows, malformed headers, or zero-byte files fail early without breaking the system.
+*   **High-Fidelity Stream Parsing Validation:** Heavy validation on data ingestion (achieving **92% line coverage** on stream-based parsing engines) ensuring broken rows, malformed headers, or zero-byte files fail early with proper validation responses.
 *   **Stateless Security & Filter Mocking:** Rigorous testing on JWT verification filters, asserting correct request rejection on mismatched signatures or expired token payloads.
 
 ---
@@ -159,9 +181,9 @@ If you are experiencing scaling bottlenecks, chasing race conditions in producti
 
 I am available for **targeted short-to-medium term contracts**, **fractional architecture consulting**, or **deep-dive incident remediation** on critical system bugs via Upwork or Direct Contract.
 
-*   📬 **Direct Inquiries:** `edo.ricardo@gmail.com`
-*   💼 **LinkedIn:** [Linkedin Profile](https://www.linkedin.com/in/edovirgolim/)
-*   🆔 **Upwork Profile:** [Upwork Profile](https://www.upwork.com/freelancers/~01297609fbbeefd542?mp_source=share)
+*   📬 **Direct Inquiries:** `edo.virgolim@gmail.com`
+*   💼 **LinkedIn:** [Edo Virgolim](https://linkedin.com)
+*   🆔 **Upwork Profile:** [Upwork Portfolio](https://upwork.com)
 
 *Are you a tech lead or engineering manager evaluating my capabilities? Drop me an email to request complete read-access to the private repository, where you can deeply evaluate my code quality, enterprise commit hygiene, and advanced Testcontainers integration suites.*
 

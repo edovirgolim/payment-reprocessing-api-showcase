@@ -6,7 +6,8 @@ The API accepts a CSV or JSON file, stores it in S3, and returns a job reference
 (`202 Accepted`). A background pipeline then ingests the file and processes each payment item
 independently. Clients poll two read endpoints to track progress.
 
-The pipeline has three asynchronous stages connected by the Transactional Outbox pattern and SQS:
+The pipeline has three stages. The upload is synchronous; ingestion and item processing are
+asynchronous and use SQS. A persistence outbox bridges database writes and queue publication.
 
 ```
   POST /reprocess          Outbox → SQS          SQS → Worker
@@ -15,8 +16,12 @@ The pipeline has three asynchronous stages connected by the Transactional Outbox
  │   (sync)     │        │   (async)     │      │      (async)        │
  └──────────────┘        └───────────────┘      └─────────────────────┘
   returns jobId           reads S3, writes        one message per item,
-  in < 1s                 items to DB             calls payment gateway
+  (202 Accepted)          items to DB             calls payment gateway
 ```
+
+The upload request calculates a SHA-256 payload hash before storing the file in S3. No response-time
+guarantee is made. PostgreSQL writes the job and its outbox event in one database transaction;
+DynamoDB currently writes them in separate calls, so its outbox is not transactionally atomic.
 
 ---
 
@@ -54,15 +59,23 @@ src/main/java/com/virgolim/paymentapi/
 ## Security
 
 Every `/api/v1/payments/**` request must carry a Bearer JWT with the `PAYMENT_OPERATOR` role.
-The filter runs before Spring Security's authentication filter.
+The filter runs before Spring Security's username/password authentication filter.
+
+The `Authorization` header must use the `Bearer <JWT>` format. Although the API requires
+`ROLE_PAYMENT_OPERATOR`, the current filter assigns that authority to every valid token; it does
+not validate a role claim. A production identity integration should validate the caller's
+authorization claims rather than granting the role unconditionally.
 
 ```
-Client ──► JwtAuthenticationFilter ──► Spring Security (role check) ──► Controller
-              extracts sub as ownerId       hasRole(PAYMENT_OPERATOR)
+Client ──► JwtAuthenticationFilter ──► Spring Security ──► Controller
+              verifies signature,            requires ROLE_PAYMENT_OPERATOR
+              extracts sub, grants role
 ```
 
-The `sub` claim becomes the `ownerId` that scopes all DB reads — a user can only see their own jobs.
-Actuator health endpoints are public. All other paths require authentication.
+The filter grants `ROLE_PAYMENT_OPERATOR` to every successfully validated JWT; it does not read or
+validate a role claim. The `sub` claim becomes the `ownerId` that scopes job reads, so a caller can
+only read jobs associated with that subject. `GET /actuator/health` and its subpaths are public.
+All other paths require authentication.
 
 ---
 
@@ -94,7 +107,7 @@ sequenceDiagram
             Controller-->>Client: 202 Already queued / 200 Already finalized
         else Hash differs
             UploadUseCase-->>Controller: BusinessException
-            Controller-->>Client: 400 Different payload for same key
+            Controller-->>Client: 422 Different payload for same key
         end
 
     else New submission
@@ -107,14 +120,22 @@ sequenceDiagram
     end
 ```
 
-**What is written:** S3 object + `batch_job` row (status `QUEUED`) + `outbox_event` row (type `INGEST`).  
-**Error handling:** empty file or missing extension → `BusinessException` → 400. Race condition on unique key → S3 orphan deleted, idempotent retry.
+**What is written:** S3 object + logical batch-job record (status `QUEUED`) + outbox event (type
+`INGEST`). PostgreSQL commits the job and outbox event in one transaction. DynamoDB writes them
+separately.
+
+**Error handling:** missing/empty `Idempotency-Key` and unsupported file extension → 400;
+empty file, missing filename extension, or a reused key with a different payload → 422. The
+PostgreSQL implementation handles a unique-key race by deleting the orphaned S3 object and
+returning the matching existing submission when its hash is the same. DynamoDB does not use a
+conditional write for job creation, so the same race-safety guarantee does not apply there.
 
 ---
 
 ## Flow 2 — Outbox to SQS (scheduled)
 
-`OutboxPublisher` runs every ~1 s and bridges the local DB with SQS.
+`OutboxPublisher` runs every ~1 s by default (configurable) and bridges the persistence layer with
+SQS. It reads at most ten eligible events per poll.
 
 ```mermaid
 sequenceDiagram
@@ -137,9 +158,12 @@ sequenceDiagram
     end
 ```
 
-**Why it exists:** writing the outbox row in the same DB transaction as the job/item data means no
-message is lost if the process crashes between DB commit and SQS send. Failed SQS sends are retried
-on the next poll cycle (at-least-once delivery).
+**Why it exists:** the outbox allows pending work to be published after database writes. In
+PostgreSQL, the job/item records and their outbox rows are committed transactionally. In DynamoDB,
+the records and outbox events are separate calls, so a crash between calls can leave them
+inconsistent. Failed SQS sends remain pending for a later poll; if sending succeeds but marking the
+event as published fails, the event can be sent again. Delivery is therefore at least once, not
+exactly once.
 
 ---
 
@@ -157,7 +181,7 @@ sequenceDiagram
     participant Parser as CSV / JSON Parser
     participant DB
 
-    Consumer->>SQS: receiveMessage (long-poll 10 s)
+    Consumer->>SQS: receiveMessage (long-poll 10 s, visibility timeout 360 s)
     SQS-->>Consumer: message {jobId}
 
     Consumer->>IngestUC: ingest(jobId)
@@ -202,7 +226,10 @@ sequenceDiagram
     Consumer->>SQS: deleteMessage
 ```
 
-**What is written per item:** `transaction_item` row (status `NEW`, with `failureReason` pre-filled for `UNKNOWN` types) + `outbox_event` row (type `ITEM`).  
+**What is written per item:** transaction-item record (status `NEW`, with `failureReason`
+pre-filled for `UNKNOWN` types) + outbox event (type `ITEM`). The item events are not eligible for
+publication until ingestion is complete and the job is in `PROCESSING`.
+
 **Unknown payment types (e.g. PIX):** accepted without error. The item is stored with `paymentType = UNKNOWN` and a `failureReason` set at parse time. The gateway is never called for these items.
 
 ---
@@ -221,7 +248,7 @@ sequenceDiagram
     participant Gateway as PaymentGatewayAdapter<br/>(CB + Bulkhead)
     participant DB
 
-    Consumer->>SQS: receiveMessage (long-poll 10 s)
+    Consumer->>SQS: receiveMessage (long-poll 10 s, visibility timeout 360 s)
     SQS-->>Consumer: message {itemId}
 
     Consumer->>QueuedUC: process(itemId)
@@ -242,7 +269,7 @@ sequenceDiagram
         else Duplicate (prior SUCCESS for same clientId + paymentId)
             QueuedUC->>DB: existsSuccessfulTransaction(clientId, paymentId)
             DB-->>QueuedUC: true
-            QueuedUC->>DB: saveItemResult(SUCCESS, "duplicate skipped")
+            QueuedUC->>DB: saveItemResult: SUCCESS, duplicate gateway call skipped
         else Normal processing
             QueuedUC->>ProcessUC: reprocess(item)
             ProcessUC->>Gateway: process(item)
@@ -254,7 +281,7 @@ sequenceDiagram
             else Exception thrown
                 Gateway-->>ProcessUC: FAILED — "gateway processing failed"
             else Circuit breaker open (fallback)
-                ProcessUC-->>QueuedUC: FAILED — "circuit breaker open"
+                ProcessUC-->>QueuedUC: FAILED — circuit breaker fallback result
             end
 
             ProcessUC-->>QueuedUC: TransactionItem(result)
@@ -266,6 +293,11 @@ sequenceDiagram
 
     Consumer->>SQS: deleteMessage
 ```
+
+The consumer receives one message per poll with a 10-second long poll and 360-second visibility
+timeout. A successful return from the use case causes the message to be deleted. Exceptions that
+escape the use case are logged and leave the message for SQS redelivery after the visibility
+timeout.
 
 **Job finalisation rule (inside `saveItemResult`):**
 
@@ -295,7 +327,7 @@ sequenceDiagram
         Controller-->>Client: 404 Not Found
     else Found
         DB-->>Controller: BatchJob (with failedItems list)
-        Controller-->>Client: 200 BatchJobResultResponse<br/>{status, totalItems, reprocessedSuccessfully,<br/>notReprocessed, failedItems, failureReason}
+        Controller-->>Client: 200 BatchJobResultResponse<br/>{jobId, status, totalItems, reprocessedSuccessfully,<br/>notReprocessed, failedItems, failureReason}
     end
 
     Client->>Controller: GET /reprocess/{jobId}/items<br/>Authorization: Bearer <token>
@@ -315,27 +347,30 @@ sequenceDiagram
 
 ## Job and item lifecycle
 
+**Batch job lifecycle**
+
 ```mermaid
 stateDiagram-v2
     direction LR
+    [*] --> QUEUED : createJob
+    QUEUED --> INGESTING : claimIngestion
+    INGESTING --> PROCESSING : finishIngestion, items greater than zero
+    INGESTING --> COMPLETED : finishIngestion, no items
+    INGESTING --> FAILED : validation error
+    PROCESSING --> COMPLETED : all items succeeded
+    PROCESSING --> PARTIALLY_COMPLETED : mix of successes and failures
+    PROCESSING --> FAILED : all items failed
+```
 
-    state "BatchJob" as JOB {
-        [*] --> QUEUED      : createJob
-        QUEUED --> INGESTING : claimIngestion
-        INGESTING --> PROCESSING : finishIngestion (items > 0)
-        INGESTING --> COMPLETED  : finishIngestion (items = 0)
-        INGESTING --> FAILED     : markJobFailed (validation error)
-        PROCESSING --> COMPLETED          : all items SUCCESS
-        PROCESSING --> PARTIALLY_COMPLETED : mix SUCCESS + FAILED
-        PROCESSING --> FAILED             : all items FAILED
-    }
+**Transaction item lifecycle**
 
-    state "TransactionItem" as ITEM {
-        [*] --> NEW        : saveItemBatch
-        NEW --> PROCESSING  : claimItem
-        PROCESSING --> SUCCESS : gateway ok
-        PROCESSING --> FAILED  : gateway error / UNKNOWN type
-    }
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> NEW : saveItemBatch
+    NEW --> PROCESSING : claimItem
+    PROCESSING --> SUCCESS : gateway succeeded or duplicate skipped
+    PROCESSING --> FAILED : gateway error, CUSTOM, or UNKNOWN type
 ```
 
 ---
@@ -352,8 +387,9 @@ stateDiagram-v2
 The DynamoDB adapter uses three GSIs: `IdempotencyKeyIndex` (idempotency lookup), `BatchJobIndex`
 (item-by-job queries), and `LedgerIndex` (duplicate transaction check).
 
-Neither implementation makes all writes atomic/conditional across multiple tables. The outbox model
-reduces the risk of lost messages but does not provide exactly-once delivery end to end.
+The DynamoDB implementation does not make related writes across its tables atomic. PostgreSQL wraps
+related persistence operations in database transactions, but neither backend makes database updates
+and SQS publication atomic; the outbox does not provide exactly-once delivery end to end.
 
 ---
 
@@ -362,17 +398,18 @@ reduces the risk of lost messages but does not provide exactly-once delivery end
 | Stage | Error | Outcome |
 |---|---|---|
 | Upload | Missing or empty `Idempotency-Key` | 400 — `IllegalArgumentException` |
-| Upload | Empty file | 400 — `BusinessException` |
-| Upload | Unsupported file extension | 400 — `BusinessException` |
-| Upload | Same key, different payload hash | 400 — `BusinessException` |
-| Upload | Race condition (duplicate DB key) | S3 orphan deleted; idempotent response returned |
+| Upload | Empty file, missing extension, or different payload for an existing key | 422 — `BusinessException` |
+| Upload | Unsupported file extension | 400 — `IllegalArgumentException` |
+| Upload | PostgreSQL unique-key race with matching payload | Orphaned S3 object deleted; existing submission returned |
+| Upload | DynamoDB concurrent creation with the same idempotency key | No conditional write; duplicate job creation is not prevented |
 | Ingest | File format invalid (bad headers / dates) | `markJobFailed` → job `FAILED`, message deleted |
 | Ingest | S3 read error | `UncheckedIOException` propagated; message retried by SQS |
 | Item | `paymentType = UNKNOWN` | Item `FAILED` with original type in `failureReason`; no gateway call |
-| Item | Gateway returns false | Item `FAILED` — "gateway rejected reprocessing" |
-| Item | Exception in gateway | Item `FAILED` — "gateway processing failed" |
-| Item | Circuit breaker open | Item `FAILED` — "circuit breaker open; will retry" |
-| Item | Concurrent worker holds lease | `IllegalStateException`; message retried by SQS |
+| Item | `paymentType = CUSTOM` (no adapter registered) | Item `FAILED` — "Payment gateway processing failed." |
+| Item | Gateway returns false | Item `FAILED` — "Payment gateway rejected reprocessing." |
+| Item | Exception in gateway | Item `FAILED` — "Payment gateway processing failed." |
+| Item | Circuit breaker open | Fallback records an `FAILED` item result; use case returns normally and the message is deleted (not retried by SQS) |
+| Item | Item is not claimed and is not terminal | `IllegalStateException`; message remains for SQS redelivery after the visibility timeout |
 | Item | Already terminal (SUCCESS/FAILED) | Silent no-op; message deleted |
 | Read | Job not found or wrong owner | 404 — `ResourceNotFoundException` |
 
@@ -382,10 +419,14 @@ reduces the risk of lost messages but does not provide exactly-once delivery end
 
 - **No DLQs.** Messages that keep failing are retried until SQS retention expires. Add DLQs and
   redrive policies to both queues before production use.
-- **Non-atomic DynamoDB writes.** Job and outbox events are written in separate calls; a crash
-  between them can cause inconsistency. Production deployments should use DynamoDB transactions.
-- **Outbox table scan.** `findPendingOutboxEvents` scans the full table (DynamoDB) or uses an
-  index (PostgreSQL). At scale, replace with a time-partitioned GSI or a CDC-based publisher.
+- **Non-atomic DynamoDB writes.** Job and outbox events, item records and item outbox events, and
+  item results and job counters are written in separate calls. A crash between calls can cause
+  inconsistency. In particular, DynamoDB `markJobFailed` does not update or fail already-created
+  item records, unlike the PostgreSQL implementation. Production deployments should use DynamoDB
+  transactions and conditional updates.
+- **Outbox polling.** `findPendingOutboxEvents` scans the full table in DynamoDB. PostgreSQL uses
+  an eligibility query joining outbox events, jobs, and (for item events) transaction items.
+  At scale, assess a time-partitioned GSI or a CDC-based publisher.
 - **Simulated gateways.** `CreditCardGatewayAdapter`, `DebitCardGatewayAdapter`, and
   `BankTransferGatewayAdapter` always return `true`. Real integrations must use provider-supported
   idempotency keys and reconcile uncertain outcomes.
