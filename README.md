@@ -1,8 +1,9 @@
-# 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline (Enterprise Showcase)
+# 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
+## Enterprise Showcase
 
-[![Java 21](https://shields.io)](https://openjdk.org)
-[![Spring Boot 3](https://shields.io)](https://spring.io)
-[![AWS Architecture Ready](https://shields.io)](#%EF%B8%8F-enterprise-grade-stack)
+<p align="left">
+  <strong>☕ Java 21</strong> &nbsp; • &nbsp; <strong>🍃 Spring Boot 3</strong> &nbsp; • &nbsp; <strong>☁️ AWS Architecture Ready</strong>
+</p>
 
 > **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
 > This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request.  
