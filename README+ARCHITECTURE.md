@@ -6,7 +6,6 @@
 >
 > GitHub Showcase: https://github.com/edovirgolim/payment-reprocessing-api-showcase  
 
-<br/>
 
 # 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
 ## Enterprise Showcase
@@ -210,10 +209,7 @@ I am available for **targeted short-to-medium term contracts**, **fractional arc
 
 *Are you a tech lead or engineering manager evaluating my capabilities? Drop me an email to request complete read-access to the private repository, where you can deeply evaluate my code quality, enterprise commit hygiene, and advanced Testcontainers integration suites.*
 
----
-© 2026 Edo Virgolim. All rights reserved.
 
-<br/><br/>
 
 ---
 
@@ -651,3 +647,6 @@ and SQS publication atomic; the outbox does not provide exactly-once delivery en
   idempotency keys and reconcile uncertain outcomes.
 - **Single EC2 instance.** The AWS environment runs one host. There is no horizontal scaling,
   auto-recovery, or scheduled shutdown.
+
+---
+© 2026 Edo Virgolim. All rights reserved.
