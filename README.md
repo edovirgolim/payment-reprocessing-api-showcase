@@ -1,14 +1,20 @@
+
+> **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
+> This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request. 
+>
+> ✉️ **Request source access:** `edo.virgolim@gmail.com`
+>
+> GitHub Showcase: https://github.com/edovirgolim/payment-reprocessing-api-showcase  
+
+
 # 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
 ## Enterprise Showcase
+
 
 <p align="left">
   <strong>☕ Java 21</strong> &nbsp; • &nbsp; <strong>🍃 Spring Boot 3</strong> &nbsp; • &nbsp; <strong>☁️ AWS Architecture Ready</strong>
 </p>
 
-> **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
-> This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request.  
->
-> ✉️ **Hire me on Upwork or request source access:** `edo.virgolim@gmail.com`
 
 ---
 
@@ -68,14 +74,14 @@ The system is architected using **Clean Architecture** and **Domain-Driven Desig
 
 The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project:
 
-👉 **[Read the Full Systems Architecture Reference (ARCHITECTURE.md)](ARCHITECTURE.md)**
+
 
 | Architectural Blueprint | What It Unlocks |
 |---|---|
-| [Flow 1 — Synchronous Upload](ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
-| [Flow 2 — Transactional Outbox](ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
-| [Flow 3 — Async File Ingestion](ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
-| [Flow 4 — Resilient Item Processing](ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
+| [Flow 1 — Synchronous Upload](README+ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
+| [Flow 2 — Transactional Outbox](README+ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
+| [Flow 3 — Async File Ingestion](README+ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
+| [Flow 4 — Resilient Item Processing](README+ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
 
 ---
 
@@ -181,13 +187,12 @@ If you are experiencing scaling bottlenecks, chasing race conditions in producti
 
 ## 🤝 Let's Connect
 
-I am available for **targeted short-to-medium term contracts**, **fractional architecture consulting**, or **deep-dive incident remediation** on critical system bugs via Upwork or Direct Contract.
-
 *   📬 **Direct Inquiries:** `edo.virgolim@gmail.com`
-*   💼 **LinkedIn:** [Edo Virgolim](https://www.linkedin.com/in/edovirgolim/)
-*   🆔 **Upwork Profile:** [Upwork Portfolio](https://www.upwork.com/freelancers/~01297609fbbeefd542)
+*   💼 **LinkedIn:** [https://www.linkedin.com/in/edovirgolim/](https://www.linkedin.com/in/edovirgolim/)
+*   🐱 **Github Profile:** [https://github.com/edovirgolim](https://github.com/edovirgolim)
 
 *Are you a tech lead or engineering manager evaluating my capabilities? Drop me an email to request complete read-access to the private repository, where you can deeply evaluate my code quality, enterprise commit hygiene, and advanced Testcontainers integration suites.*
+
 
 ---
 © 2026 Edo Virgolim. All rights reserved.
