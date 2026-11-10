@@ -72,16 +72,15 @@ The system is architected using **Clean Architecture** and **Domain-Driven Desig
 
 ### 🗺️ Deep-Dive Systems Architecture & Diagrams
 
-The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project:
-
+The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project: **[ARCHITECTURE.md](ARCHITECTURE.md)**
 
 
 | Architectural Blueprint | What It Unlocks |
 |---|---|
-| [Flow 1 — Synchronous Upload](README+ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
-| [Flow 2 — Transactional Outbox](README+ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
-| [Flow 3 — Async File Ingestion](README+ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
-| [Flow 4 — Resilient Item Processing](README+ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
+| [Flow 1 — Synchronous Upload](ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
+| [Flow 2 — Transactional Outbox](ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
+| [Flow 3 — Async File Ingestion](ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
+| [Flow 4 — Resilient Item Processing](ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
 
 ---
 
