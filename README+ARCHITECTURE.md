@@ -2,7 +2,7 @@
 > **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
 > This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request. 
 >
-> ✉️ **Hire me on Upwork or request source access:** `edo.virgolim@gmail.com`
+> ✉️ **Request source access:** `edo.virgolim@gmail.com`
 >
 > GitHub Showcase: https://github.com/edovirgolim/payment-reprocessing-api-showcase  
 
@@ -201,11 +201,9 @@ If you are experiencing scaling bottlenecks, chasing race conditions in producti
 
 ## 🤝 Let's Connect
 
-I am available for **targeted short-to-medium term contracts**, **fractional architecture consulting**, or **deep-dive incident remediation** on critical system bugs via Upwork or Direct Contract.
-
 *   📬 **Direct Inquiries:** `edo.virgolim@gmail.com`
-*   💼 **LinkedIn:** [Edo Virgolim](https://www.linkedin.com/in/edovirgolim/)
-*   🆔 **Upwork Profile:** [Upwork Portfolio](https://www.upwork.com/freelancers/~01297609fbbeefd542)
+*   💼 **LinkedIn:** [https://www.linkedin.com/in/edovirgolim/](https://www.linkedin.com/in/edovirgolim/)
+*   🐱 **Github Profile:** [https://github.com/edovirgolim](https://github.com/edovirgolim)
 
 *Are you a tech lead or engineering manager evaluating my capabilities? Drop me an email to request complete read-access to the private repository, where you can deeply evaluate my code quality, enterprise commit hygiene, and advanced Testcontainers integration suites.*
 
