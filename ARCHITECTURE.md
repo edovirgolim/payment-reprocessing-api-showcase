@@ -1,3 +1,33 @@
+# 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
+## Enterprise Showcase
+
+
+<p align="left">
+  <strong>☕ Java 21</strong> &nbsp; • &nbsp; <strong>🍃 Spring Boot 3</strong> &nbsp; • &nbsp; <strong>☁️ AWS Architecture Ready</strong>
+</p>
+
+
+---
+
+## 🗺️ Table of Contents
+
+
+* [# Architecture](#architecture)
+  * [Overview](#overview)
+  * [Module map](#module-map)
+  * [Security](#security)
+  * [Flow 1 — Upload (synchronous)](#flow-1--upload-synchronous)
+  * [Flow 2 — Outbox to SQS (scheduled)](#flow-2--outbox-to-sqs-scheduled)
+  * [Flow 3 — Ingestion (asynchronous)](#flow-3--ingestion-asynchronous)
+  * [Flow 4 — Item processing (asynchronous)](#flow-4--item-processing-asynchronous)
+  * [Flow 5 — Reading results (synchronous)](#flow-5--reading-results-synchronous)
+  * [Job and item lifecycle](#job-and-item-lifecycle)
+  * [Persistence and profiles](#persistence-and-profiles)
+  * [Error handling summary](#error-handling-summary)
+  * [Production limitations (showcase scope)](#production-limitations-showcase-scope)
+
+
+
 # Architecture
 
 ## Overview
@@ -432,3 +462,6 @@ and SQS publication atomic; the outbox does not provide exactly-once delivery en
   idempotency keys and reconcile uncertain outcomes.
 - **Single EC2 instance.** The AWS environment runs one host. There is no horizontal scaling,
   auto-recovery, or scheduled shutdown.
+
+---
+© 2026 Edo Virgolim. All rights reserved.
