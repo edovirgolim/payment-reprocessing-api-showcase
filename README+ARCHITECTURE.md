@@ -1,19 +1,19 @@
-
-> **💼 Available for Contracts, Fractional Consulting, and High-Complexity System Remediation (US/EU Timezones).**  
-> This repository serves as a public technical showcase of production-grade distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request. 
+> **💼 Available for Contracts, Fractional Consulting, and Backend System Remediation (US/EU Timezones).**  
+> This repository serves as a public technical showcase of production-grade Java & Spring Boot distributed systems engineering. The underlying source code is proprietary and securely hosted in a private repository. Full access for source audits, technical assessments, or prospective client reviews can be granted upon request.
 >
 > ✉️ **Request source access:** `edo.virgolim@gmail.com`
 >
-> GitHub Showcase: https://github.com/edovirgolim/payment-reprocessing-api-showcase  
+> GitHub Showcase: https://github.com
 
 
 # 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
-## Enterprise Showcase
+## Enterprise Java & Spring Boot Showcase
 
 
 <p align="left">
-  <strong>☕ Java 21</strong> &nbsp; • &nbsp; <strong>🍃 Spring Boot 3</strong> &nbsp; • &nbsp; <strong>☁️ AWS Architecture Ready</strong>
+  <strong>☕ Java 21</strong> &nbsp; • &nbsp; <strong>🍃 Spring Boot 3</strong> &nbsp; • &nbsp; <strong>🛡️ Resilience4j</strong> &nbsp; • &nbsp; <strong>☁️ AWS SDK Integration</strong>
 </p>
+
 
 
 ---
@@ -49,14 +49,14 @@
 
 ---
 
-## 👨‍💻 Behind the Architecture: Meet the Engineer
+## 👨‍💻 Behind the Code: Meet the Engineer
 
-Hi, I'm **Edo Virgolim**, a **Senior Software Engineer & Architect with over 20 years of hands-on experience** designing high-scale backend systems, complex event-driven architectures, and robust cloud pipelines for international clients across the US and Europe. 
+Hi, I'm **Edo Virgolim**, a **Senior Software Engineer with over 20 years of hands-on experience** building high-scale Java backend systems, event-driven microservices, and resilient distributed pipelines for international clients across the US and Europe.
 
-Throughout my career, I have engineered systems processing **100k+ daily requests**, integrated generative AI to deflect support overhead by 40%, and worked within strict **European financial compliance frameworks (ING Bank, Netherlands)**. 
+Throughout my career, I have engineered backend services processing **100k+ daily requests**, integrated generative AI into Spring Boot workflows to deflect support overhead by 40%, and delivered mission-critical code within strict **European financial compliance frameworks (ING Bank, Netherlands)**.
 
 ### Why I built this showcase:
-As an enterprise engineer, my production codebases live securely behind corporate NDAs. I built this independent, end-to-end payment reprocessing pipeline to publicly demonstrate my engineering standards, code hygiene, architectural patterns, and ability to productionalize complex AWS topologies from scratch. When you hire me, this is the caliber of software engineering you bring to your team.
+As a senior enterprise developer, my production codebases live securely behind corporate NDAs. I built this independent, end-to-end payment reprocessing pipeline to publicly demonstrate my Java 21 & Spring Boot 3 coding standards, automated testing rigor, concurrency patterns, and ability to integrate seamlessly with cloud messaging and storage services. When you hire me, this is the caliber of backend engineering you bring to your team.
 
 ---
 
@@ -86,16 +86,15 @@ The system is architected using **Clean Architecture** and **Domain-Driven Desig
 
 ### 🗺️ Deep-Dive Systems Architecture & Diagrams
 
-The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project:
-
+The complete design specifications—including **Mermaid sequence diagrams** for every pipeline stage, comprehensive state machine transitions for jobs/items, and a full failure-mode matrix—are thoroughly detailed in our dedicated architecture document at the root of this project: **[ARCHITECTURE.md](ARCHITECTURE.md)**
 
 
 | Architectural Blueprint | What It Unlocks |
 |---|---|
-| [Flow 1 — Synchronous Upload](README+ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
-| [Flow 2 — Transactional Outbox](README+ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
-| [Flow 3 — Async File Ingestion](README+ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
-| [Flow 4 — Resilient Item Processing](README+ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
+| [Flow 1 — Synchronous Upload](ARCHITECTURE.md#flow-1--upload-synchronous) | SHA-256 payload validation, multi-tier idempotency checks, and validation error handling (400/422). |
+| [Flow 2 — Transactional Outbox](ARCHITECTURE.md#flow-2--outbox-to-sqs-scheduled) | Scheduled event loop bridging the database state with SQS queue delivery guarantees. |
+| [Flow 3 — Async File Ingestion](ARCHITECTURE.md#flow-3--ingestion-asynchronous) | S3 two-pass stream chunking, worker lease claims, and isolated unknown payment token routing. |
+| [Flow 4 — Resilient Item Processing](ARCHITECTURE.md#flow-4--item-processing-asynchronous) | Fault isolation through bulkheads, circuit breaker fallbacks, and ledger deduplication. |
 
 ---
 
@@ -112,12 +111,13 @@ The complete design specifications—including **Mermaid sequence diagrams** for
 ## 🛠️ Enterprise-Grade Stack
 
 *   **Core Engineering:** Java 21 (Virtual Threads ready) & Spring Boot 3.x
-*   **Cloud Messaging:** Amazon SQS (Simple Queue Service)
-*   **Object Storage:** Amazon S3 (Simple Storage Service)
+*   **Messaging & Queues:** Amazon SQS (Spring Cloud / AWS SDK integration)
+*   **Object Storage:** Amazon S3 (Streaming file consumption)
 *   **Persistence Layers:** Amazon DynamoDB (modeled with 3 optimized Global Secondary Indexes) & PostgreSQL (fully versioned with Flyway schema migrations)
 *   **Resiliency & Stability:** Resilience4j (Circuit Breakers, Bulkheads, Fallback mechanisms)
 *   **Security:** Stateless JWT authentication mapping granular role-based access controls (`PAYMENT_OPERATOR`) scoped strictly to tenant/subject boundaries
-*   **Infrastructure as Code:** Production-ready Terraform templates defining strict VPC network boundaries, EC2 compute topology, ECR repositories, S3 buckets, and On-Demand billing structures.
+*   **Demo Environment & Local Setup:** Docker, Testcontainers, and reproducible Terraform scripts for spinning up the showcase sandbox.
+
 
 ---
 
@@ -187,15 +187,15 @@ The test suite generates native **JaCoCo coverage metrics** and executes seamles
 
 ---
 
-## 🚀 Engineering Capabilities (How I Can Help Your Business)
+## 🚀 Engineering Capabilities (How I Can Help Your Team)
 
-If you are experiencing scaling bottlenecks, chasing race conditions in production, or need an empty slate turned into a bulletproof cloud application, I apply the patterns proven in this repository to deliver:
+If you are experiencing backend scaling bottlenecks, chasing race conditions in production, or need a senior Java engineer to turn complex requirements into clean, tested code, I apply the patterns proven in this repository to deliver:
 
-1.  **Greenfield API & Microservice Development:** Crafting modern, secure, and documented distributed backend code prepared for horizontal cloud scaling (AWS / GCP).
-2.  **Concurrency & Race-Condition Remediation:** Auditing and fixing critical bugs where distributed systems double-charge customers or drop messages during high-traffic spikes.
-3.  **Legacy Modernization (Clean Architecture / DDD):** Refactoring brittle monolithic codebases into modular, testable, and highly maintainable service architectures.
-4.  **High-Performance NoSQL Modeling:** Tailoring single-table designs or complex query routing indexes in DynamoDB or MongoDB for ultra-fast, budget-conscious read/write patterns.
-5.  **Robust Automation & Infrastructure (CI/CD + IaC):** Writing reproducible Terraform infrastructure alongside automated GitHub Actions pipelines utilizing Testcontainers for real-world integration testing.
+1.  **Greenfield Java / Spring Boot Microservices:** Crafting modern, secure, and well-tested backend services prepared for horizontal scaling.
+2.  **Concurrency & Race-Condition Remediation:** Auditing and fixing critical bugs where distributed applications double-charge customers or drop messages during high-traffic spikes.
+3.  **Legacy Modernization (Clean Architecture / DDD):** Refactoring brittle monolithic Java codebases into modular, testable, and highly maintainable service layers.
+4.  **High-Performance Data Modeling & Persistence:** Optimizing relational queries (PostgreSQL/Oracle/SQL Server) or designing fast access patterns in DynamoDB and MongoDB.
+5.  **Automated Testing & Quality Engineering:** Implementing high-coverage unit and integration test suites using JUnit 5, Mockito, and Testcontainers to guarantee regression-free releases.
 
 ---
 
@@ -206,7 +206,6 @@ If you are experiencing scaling bottlenecks, chasing race conditions in producti
 *   🐱 **Github Profile:** [https://github.com/edovirgolim](https://github.com/edovirgolim)
 
 *Are you a tech lead or engineering manager evaluating my capabilities? Drop me an email to request complete read-access to the private repository, where you can deeply evaluate my code quality, enterprise commit hygiene, and advanced Testcontainers integration suites.*
-
 
 
 ---
@@ -648,3 +647,8 @@ and SQS publication atomic; the outbox does not provide exactly-once delivery en
 
 ---
 © 2026 Edo Virgolim. All rights reserved.
+
+*   📬 **Direct Inquiries:** `edo.virgolim@gmail.com`
+*   💼 **LinkedIn:** [https://www.linkedin.com/in/edovirgolim/](https://www.linkedin.com/in/edovirgolim/)
+*   🐱 **Github Profile:** [https://github.com/edovirgolim](https://github.com/edovirgolim)
+
