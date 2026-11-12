@@ -3,7 +3,7 @@
 >
 > ✉️ **Request source access:** `edo.virgolim@gmail.com`
 >
-> GitHub Showcase: https://github.com
+> GitHub Showcase: https://github.com/edovirgolim/payment-reprocessing-api-showcase
 
 
 # 🚀 High-Throughput Asynchronous Payment Reprocessing Pipeline
